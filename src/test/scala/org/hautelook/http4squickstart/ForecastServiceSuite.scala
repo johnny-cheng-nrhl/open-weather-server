@@ -3,9 +3,9 @@ package org.hautelook.http4squickstart
 import cats.effect.IO
 import org.http4s._
 import org.http4s.implicits._
-import org.specs2.matcher.MatchResult
+import org.scalatest.funsuite.AnyFunSuite
 
-class HelloWorldSpec extends org.specs2.mutable.Specification {
+class ForecastServiceSuite extends AnyFunSuite {
 
 //  "HelloWorld" >> {
 //    "return 200" >> {
