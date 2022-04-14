@@ -18,8 +18,7 @@ object Server extends IOApp {
 
   val oneCallUri: Uri = baseUriQS.withQueryParams(Map(
     "exclude" -> "minutely,hourly,daily",
-    "units" -> "imperial",
-    "appid" -> "39570670262e5b0d9f2020e77ce3ce71"
+    "units" -> "imperial"
   ))
 
   def run(args: List[String]): IO[ExitCode] =
