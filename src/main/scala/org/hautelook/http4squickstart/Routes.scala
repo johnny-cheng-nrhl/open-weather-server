@@ -4,25 +4,19 @@ import cats.Monad
 import cats.effect._
 import cats.implicits._
 import cats.data.ValidatedNel
+import com.typesafe.scalalogging.LazyLogging
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.circe.CirceEntityCodec._
+import org.http4s.circe.CirceEntityDecoder._
+import io.circe.syntax._
 
 import scala.util.Try
 
-object Routes {
+object Routes extends LazyLogging {
   def forecast[F[_]: Sync](service: ForecastService[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
     import dsl._
-
-    object DoubleVar {
-      def unapply(str: String): Option[Double] = {
-        if (!str.isEmpty) {
-          Try(str.toDouble).toOption
-        } else
-          None
-      }
-    }
 
     def toDoubleOption(str: String): Option[Double] = {
       if (!str.isEmpty)
@@ -65,27 +59,37 @@ object Routes {
     //TODO: add validation
     def validateLatLong(la: Double, lo: Double):Boolean = la <= 90 && la >= -90 && lo <= 180 && lo >= -180
 
+    import ForecastResponse._
+    import org.http4s.circe.CirceEntityCodec._
+    import org.http4s.circe.CirceEntityDecoder._
     // Invalid query parameter handling
     // ValidatingQueryParamDecoderMatcher
     HttpRoutes.of[F] {
       case GET -> Root / "forecast" :? latQueryParamMatcher(lat) +& lonQueryParamMatcher(lon) =>
         for {
           entity <- service.getOneCallWeather(ForecastRequest(lat, lon))
-        } yield entity match {
-          case Left(res) => Monad[F].pure(InternalServerError)
-          case Right(value) => Monad[F].pure(Ok(value))
-        }
+          resp <- entity
+            .leftMap {
+              case e: Error => InternalServerError()
+            }.map{value =>  Ok(value.asJson) }
+            .merge
+        } yield resp
 
-      case GET -> Root / "forecast" :? ForecastRequestQueryParamMatcher(latLongValidated) =>
+      case GET -> Root / "forecast" :? ForecastRequestQueryParamMatcher(latLongValidated) => {
         latLongValidated.fold(
           parseFailures => BadRequest(s"Unable to parse argument latLong. Details: ${parseFailures}"),
           latLong => for {
             entity <- service.getOneCallWeather(latLong)
-          } yield entity match {
-            case Left(res) => Monad[F].pure(InternalServerError)
-            case Right(value) => Monad[F].pure(Ok(value))
-          }
+            resp <- entity
+              .leftMap {
+                case e: Error => InternalServerError()
+              }
+              .map(value => Ok(value.asJson))
+              .merge
+          } yield resp
         )
+      }
+
     }
   }
 }

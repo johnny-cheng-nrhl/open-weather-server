@@ -4,6 +4,8 @@ val LogbackVersion = "1.2.3"
 val CirceVersion = "0.13.0"
 val ScalaTestVersion = "3.2.3"
 val CatsEffectVersion = "2.1.3"
+val ScalaCheckVersion = "1.15.4"
+val ScalaTestPlusVersion = "3.2.2.0"
 
 lazy val root = (project in file("."))
   .settings(
@@ -20,6 +22,8 @@ lazy val root = (project in file("."))
       "org.typelevel"   %% "cats-effect"         % CatsEffectVersion,
       "org.typelevel"   %% "cats-effect-laws"    % CatsEffectVersion % Test,
       "org.scalatest"   %% "scalatest"           % ScalaTestVersion  % "test",
+      "org.scalacheck"  %% "scalacheck"          % ScalaCheckVersion % Test,
+      "org.scalatestplus" %% "scalacheck-1-14"   % ScalaTestPlusVersion % Test,
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.3",
     ),

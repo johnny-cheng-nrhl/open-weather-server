@@ -13,12 +13,13 @@ import scala.concurrent.ExecutionContext
 
 object Server extends IOApp {
 
-  val baseUri = Uri.uri("https://api.openweathermap.org/data/2.5")
-  val baseUriQS = baseUri.withPath("/onecall")
+  val baseUri = Uri.uri("https://api.openweathermap.org")
+  val baseUriQS = baseUri.withPath("/data/2.5/onecall")
 
   val oneCallUri: Uri = baseUriQS.withQueryParams(Map(
     "exclude" -> "minutely,hourly,daily",
-    "units" -> "imperial"
+    "units" -> "imperial",
+    "appid" -> "{PROVIDE-OPEN-WEATHER-KEY}"
   ))
 
   def run(args: List[String]): IO[ExitCode] =
@@ -43,6 +44,4 @@ object Server extends IOApp {
       client <- BlazeClientBuilder(ExecutionContext.global).resource
     } yield Routes.forecast[F](ClientResources.forecasts(client, oneCallUri))
 
-  // curl -X GET  "http://localhost:8080/weather/forecast?lat=41.40338&lon=2.1740"
-  // curl -X GET  "http://localhost:8080/weather/forecast?latLong=41.4033,2.1740"
 }
